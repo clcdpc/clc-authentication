@@ -2,6 +2,7 @@
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Clc.Auth.NetCore.Data;
+using Clc.Configuration;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Configuration;
 
@@ -9,17 +10,16 @@ namespace Clc.Auth.NetCore.Security
 {
     public class ClcAzureAdClaimsTransformer : IClaimsTransformation
     {
-        public IConfiguration config;
+        readonly AuthDbHelper db;
 
-        public ClcAzureAdClaimsTransformer(IConfiguration _config)
+        public ClcAzureAdClaimsTransformer(AppSettings config)
         {
-            config = _config;
+            db = new AuthDbHelper(config);
         }
 
         public Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
         {
             var ci = (ClaimsIdentity)principal.Identity;
-            var db = new DbHelper(config);
             var roles = db.GetRolesForUser(ci.Name);
 
             foreach (var role in roles)

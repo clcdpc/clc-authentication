@@ -1,4 +1,5 @@
 ﻿using Clc.Auth.NetCore.Data;
+using Clc.Configuration;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Configuration;
 using System;
@@ -16,11 +17,11 @@ namespace Clc.Auth.NetCore.Security
 
     public class IsClcUserCheckHandler : AuthorizationHandler<IsClcUserRequirement>
     {
-        DbHelper db;
+        AuthDbHelper db;
 
-        public IsClcUserCheckHandler(IConfiguration _config)
+        public IsClcUserCheckHandler(AppSettings config)
         {
-            db = new DbHelper(_config);
+            db = new AuthDbHelper(config);
         }
 
         protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, IsClcUserRequirement requirement)

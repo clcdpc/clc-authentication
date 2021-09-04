@@ -1,4 +1,5 @@
-﻿using Dapper;
+﻿using Clc.Configuration;
+using Dapper;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
@@ -8,22 +9,14 @@ using System.Text;
 
 namespace Clc.Auth.NetCore.Data
 {
-    public class ClcOptions
+    public class AuthDbHelper
     {
-        public const string Key = "Clc";
-
-        public string DbServer { get; set; }
-        public string ApplicationName { get; set; }
-    }
-
-    public class DbHelper
-    {
-        ClcOptions config;
+        AppSettings config;
         public string ConnectionString => $"Server={config.DbServer};Database=clc_web_membership;Trusted_Connection=True;";
 
-        public DbHelper(IConfiguration _config)
+        public AuthDbHelper(AppSettings _config)
         {
-            config = _config.GetSection("Clc").Get<ClcOptions>();
+            config = _config;
         }
 
         public List<string> GetRolesForUser(string username)
