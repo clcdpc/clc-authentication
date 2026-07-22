@@ -1,4 +1,4 @@
-﻿using Clc.Auth.NetCore.Data;
+﻿using Clc.Auth.AzureAd.Data;
 using Clc.Configuration;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Configuration;
@@ -8,28 +8,35 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
-namespace Clc.Auth.NetCore.Security
+namespace Clc.Auth.AzureAd.Security
 {
     public class IsClcUserRequirement : IAuthorizationRequirement
     {
 
     }
 
-    public class IsClcUserCheckHandler : AuthorizationHandler<IsClcUserRequirement>
+    public class IsClcUserCheckHandler : AuthorizationHandler<IsClcUserRequirement>, IAuthorizationRequirement
     {
         AuthDbHelper db;
 
-        public IsClcUserCheckHandler(AppSettings config)
+        public IsClcUserCheckHandler(AppSettings settings) : this(settings.Database.Hostname, settings.ApplicationName)
         {
-            db = new AuthDbHelper(config);
+
+        }
+
+        public IsClcUserCheckHandler(string dbHostname, string appName)
+        {
+            db = new AuthDbHelper(dbHostname, appName);
         }
 
         protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, IsClcUserRequirement requirement)
         {
             var ci = (ClaimsIdentity)context.User.Identity;
-            var domain = context.User.Identity.Name.Split('@')[1];
-
-            if (ci.IsAuthenticated && db.GetDomains().Any(d => d.Equals(domain, StringComparison.OrdinalIgnoreCase))) { context.Succeed(requirement); }
+            if (ci.IsAuthenticated)
+            {
+                var domain = context.User.Identity.Name.Split('@')[1];
+                if (ci.IsAuthenticated && db.GetDomains().Any(d => d.Equals(domain, StringComparison.OrdinalIgnoreCase))) { context.Succeed(requirement); }
+            }
             return Task.FromResult(0);
         }
     }

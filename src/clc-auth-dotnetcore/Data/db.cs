@@ -7,14 +7,19 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 
-namespace Clc.Auth.NetCore.Data
+namespace Clc.Auth.AzureAd.Data
 {
     public class AuthDbHelper
     {
         AppSettings config;
-        public string ConnectionString => $"Server={config.DbServer};Database=clc_web_membership;Trusted_Connection=True;";
+        public string ConnectionString => $"Server={config.Database.Hostname};Database=clc_web_membership;Trusted_Connection=True;";
 
-        public AuthDbHelper(AppSettings _config)
+        public AuthDbHelper(string dbHostname, string appName) : this(new AppSettings { Database = new DatabaseSettings { Hostname = dbHostname }, ApplicationName = appName })
+        {
+            config = new AppSettings { Database = new DatabaseSettings { Hostname = dbHostname }, ApplicationName = appName };
+        }
+
+        public AuthDbHelper(AppSettings _config) //: this(_config.Database.Hostname, _config.ApplicationName)
         {
             config = _config;
         }
@@ -23,7 +28,7 @@ namespace Clc.Auth.NetCore.Data
         {
             using (var sql = new SqlConnection(ConnectionString))
             {
-                var sqlCommand = "select uir.RoleName from clc_web_membership.dbo.UsersInRoles uir where uir.ApplicationName = @application and uir.Username = @username";
+                var sqlCommand = "select distinct uir.RoleName from clc_web_membership.dbo.UsersInRoles uir where (uir.ApplicationName = @application or @application = 'any') and uir.Username = @username";
 
                 return sql.Query<string>(sqlCommand, new { username, application = config.ApplicationName }).ToList();
             }
@@ -34,7 +39,7 @@ namespace Clc.Auth.NetCore.Data
             using (var sql = new SqlConnection(ConnectionString))
             {
                 var emailDomain = username.Split('@')[1];
-                var sqlCommand = "select ed.LibraryId from clc_web_membership.dbo.EmailDomains ed where ed.ApplicationName = @application and ed.EmailDomain = @emailDomain";
+                var sqlCommand = "select top 1 ed.LibraryId from clc_web_membership.dbo.EmailDomains ed where (ed.ApplicationName = @application or ed.ApplicationName is null) and ed.EmailDomain = @emailDomain order by ApplicationName";
 
                 return sql.QueryFirst<int>(sqlCommand, new { application = config.ApplicationName, emailDomain });
             }
@@ -44,9 +49,9 @@ namespace Clc.Auth.NetCore.Data
         {
             using (var sql = new SqlConnection(ConnectionString))
             { 
-                var command = "select distinct Domain from OrganizationDomains where Application = @application";
+                var command = "select distinct EmailDomain from EmailDomains where ApplicationName = @applicationName or ApplicationName is null";
 
-                return sql.Query<string>(command, new { application = config.ApplicationName }).ToList();
+                return sql.Query<string>(command, new { applicationName = config.ApplicationName }).ToList();
             }
         }
     }
