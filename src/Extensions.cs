@@ -1,5 +1,4 @@
-﻿using Clc.Auth.AzureAd.Security;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+﻿using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Configuration;
@@ -11,7 +10,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.Identity.Web;
 
-namespace Clc.Auth
+namespace Clc.Authentication
 {
     public static class UserExtensions
     {
@@ -31,12 +30,22 @@ namespace Clc.Auth
     {
         public static IServiceCollection AddClcAzureAdAuth(this IServiceCollection services, IConfiguration config)
         {
+            const string databaseServerKey = "Clc:DatabaseServer";
+            var databaseServer = config[databaseServerKey];
+            if (string.IsNullOrWhiteSpace(databaseServer))
+                throw new InvalidOperationException($"Configuration setting '{databaseServerKey}' is required.");
+
+            const string applicationNameKey = "Clc:ApplicationName";
+            var appName = config[applicationNameKey];
+            if (string.IsNullOrWhiteSpace(appName))
+                throw new InvalidOperationException($"Configuration setting '{applicationNameKey}' is required.");
+
             services
                 .AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
                 .AddMicrosoftIdentityWebApp(config.GetSection("AzureAd"));
 
-            services.AddSingleton<IAuthorizationHandler, IsClcUserCheckHandler>();
-            services.AddSingleton<IClaimsTransformation, ClcAzureAdClaimsTransformer>();
+            services.AddSingleton<IAuthorizationHandler>(_ => new IsClcUserCheckHandler(databaseServer, appName));
+            services.AddSingleton<IClaimsTransformation>(_ => new ClcAzureAdClaimsTransformer(databaseServer, appName));
 
             return services;
         }

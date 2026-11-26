@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<AssemblyName>clc-authentication</AssemblyName>
+		<RootNamespace>Clc.Authentication</RootNamespace>
+		<Authors>Central Library Consortium</Authors>
+		<Description>Microsoft Entra ID sign-in and CLC membership authorization for ASP.NET Core web apps.</Description>
+		<RepositoryUrl>https://github.com/clcdpc/clc-authentication</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Dapper" Version="2.0.123" />
+		<PackageReference Include="Microsoft.Data.SqlClient" Version="7.1.2" />
+		<PackageReference Include="Microsoft.Identity.Web" Version="4.18.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="../README.md" Pack="true" PackagePath="/" />
+		<InternalsVisibleTo Include="Clc.Authentication.Tests" />
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
+
+</Project>

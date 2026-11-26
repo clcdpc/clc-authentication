@@ -7,7 +7,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Clc.Auth.AzureAd.Security
+namespace Clc.Authentication
 {
     //public class ClaimRequirementAttribute : TypeFilterAttribute
     //{
@@ -38,9 +38,26 @@ namespace Clc.Auth.AzureAd.Security
 
     public class HasRoleClaimAttribute : TypeFilterAttribute
     {
-        public HasRoleClaimAttribute(string claimValue) : base(typeof(ClaimRequirementFilter))
+        public HasRoleClaimAttribute(string claimValue) : base(typeof(RoleClaimFilter))
         {
-            Arguments = new object[] { new Claim("Role", claimValue) };
+            ArgumentNullException.ThrowIfNull(claimValue);
+            Arguments = new object[] { claimValue };
+        }
+
+        private sealed class RoleClaimFilter(string role) : IAuthorizationFilter
+        {
+            public void OnAuthorization(AuthorizationFilterContext context)
+            {
+                var hasRole = context.HttpContext.User.Identities.Any(identity =>
+                    identity.HasClaim(claim =>
+                        string.Equals(claim.Type, identity.RoleClaimType, StringComparison.OrdinalIgnoreCase) &&
+                        string.Equals(claim.Value, role, StringComparison.OrdinalIgnoreCase)));
+
+                if (!hasRole)
+                {
+                    context.Result = new ForbidResult();
+                }
+            }
         }
     }
 
