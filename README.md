@@ -1,13 +1,13 @@
 # CLC Authentication
 
-`clc-authentication` adds Microsoft Entra ID sign-in to ASP.NET Core apps targeting .NET 10. It reads application roles and organization mappings from the Central Library Consortium membership database.
+`Clc.Authentication` adds Microsoft Entra ID sign-in to ASP.NET Core apps targeting .NET 10. It reads application roles and organization mappings from the Central Library Consortium membership database.
 
 ## Install
 
 Run this command from the web app directory.
 
 ```sh
-dotnet add package clc-authentication
+dotnet add package Clc.Authentication
 ```
 
 ## Configure sign-in and membership
